@@ -14,25 +14,11 @@
 #include <core/math.h>
 #include <core/math.c>
 
-typedef struct {
-	NSApplication* app;
-	NSWindow* window;
-	id<MTLDevice> device;
-	CAMetalLayer* metalLayer;
-	id<MTLCommandQueue> commandQueue;
-	id<MTLRenderPipelineState> pipeline;
+#include "video.h"
 
-	int2_t screenSize;
-	int2_t framebufferSize;
-
-	id<MTLTexture> framebufferTexture;
-	u32* framebuffer;
-	u32* scaledFramebuffer;
-} video_state_t;
 
 void V_InitMetal();
-void V_OutputFrame();
-video_state_t video;
+video_t video;
 
 @interface MetalView : NSView <NSWindowDelegate>
 @end
@@ -168,7 +154,7 @@ void V_InitMetal() {
 	video.framebufferTexture = [video.device newTextureWithDescriptor: texDesc];
 }
 
-void V_OutputFrame() {
+void V_OutputFrameAndSync() {
 	static int index = 0;
 	FOR (i, video.framebufferSize.x*video.framebufferSize.y) {
 		// u8 c = randf() * 255.0f;
@@ -176,11 +162,14 @@ void V_OutputFrame() {
 		float x = (float)(i%video.framebufferSize.x + index) * 0.1f;
 		float y = (float)((int)(i+(index*video.framebufferSize.x))/video.framebufferSize.x) * 0.1f;
 		u8 c = fbm(vec2(x, y)) * 255.0f;
-		x *= 0.5f;
-		y *= 0.5f;
+		x *= 4.0f;
+		y *= 4.0f;
 		u8 c2 = fbm(vec2(x, y)) * 255.0f;
-		c = c/2 + c2/2;
-		video.framebuffer[i] = 255<<24 | c<<16 | 0<<8 | 0<<0;
+		x *= 4.0f;
+		y *= 4.0f;
+		u8 c3 = fbm(vec2(x, y)) * 255.0f;
+		c = c/3 + c2/3 + c3/3;
+		video.framebuffer[i] = 255<<24 | c<<16 | (c)<<8 | (0)<<0;
 	}
 	++index;
 	index %= (video.framebufferSize.x*video.framebufferSize.y);
@@ -267,17 +256,21 @@ void V_Init() {
 
 	time_t startTime = system_time();
 
-	for (;;) {
-		NSEvent* event;
-		while ((event = [video.app nextEventMatchingMask: NSEventMaskAny untilDate: nil inMode: NSDefaultRunLoopMode dequeue: YES])) {
-			print("event %i", event.type);
-			if (event.type == NSEventTypeApplicationDefined) {
-				exit(1);
-			}
-			[video.app sendEvent: event];
-			[video.app updateWindows];
-		}
+	// for (;;) {
+	// 	V_UpdateWindow();
 
-		V_OutputFrame();
+	// 	V_OutputFrameAndSync();
+	// }
+}
+
+void V_UpdateWindowAndInput() {
+	NSEvent* event;
+	while ((event = [video.app nextEventMatchingMask: NSEventMaskAny untilDate: nil inMode: NSDefaultRunLoopMode dequeue: YES])) {
+		// print("event %i", event.type);
+		if (event.type == NSEventTypeApplicationDefined) {
+			exit(1);
+		}
+		[video.app sendEvent: event];
+		[video.app updateWindows];
 	}
 }

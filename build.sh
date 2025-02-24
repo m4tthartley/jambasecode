@@ -1,6 +1,13 @@
 
-files="main.c video_apple.m"
+set -e
+
+files="video_apple.m system.c"
 libs="-framework Cocoa -framework QuartzCore -framework Metal"
+options="-fno-objc-arc"
 
 mkdir -p ./build
-clang -g -I../core $files $libs -o ./build/jam
+
+clang -g -I../core $files $libs $options -o ./build/game.so --shared
+echo "game.so built"
+clang -g -I../core main.m $files $libs $options -o ./build/jam -DHOTRELOAD
+echo "jam built"
