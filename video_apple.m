@@ -112,18 +112,26 @@ NSString* shaderSource =
 ;
 
 void V_InitMetal() {
-	video.device = MTLCreateSystemDefaultDevice();
+	id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+	[device retain];
+	video.device = device;
 	video.metalLayer = [CAMetalLayer layer];
-	video.metalLayer.device = video.device;
-	video.metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-	video.metalLayer.framebufferOnly = YES;
-	video.metalLayer.frame = video.window.contentView.bounds;
-	video.metalLayer.drawableSize = video.window.contentView.bounds.size;
 
-	video.commandQueue = [video.device newCommandQueue];
+	CAMetalLayer* metalLayer = video.metalLayer;
+	NSWindow* window = video.window;
+
+	metalLayer.device = device;
+	metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+	metalLayer.framebufferOnly = YES;
+	metalLayer.frame = window.contentView.bounds;
+	metalLayer.drawableSize = window.contentView.bounds.size;
+
+	id<MTLCommandQueue> commandQueue = [device newCommandQueue];
+	[commandQueue retain];
+	video.commandQueue = commandQueue;
 	NSError* error = NULL;
 
-	id<MTLLibrary> lib = [video.device 
+	id<MTLLibrary> lib = [device 
 		newLibraryWithSource: shaderSource
 		options:nil
 		error:&error];
@@ -138,42 +146,32 @@ void V_InitMetal() {
 	// desc.rasterSampleCount = 1;
 	desc.vertexFunction = vertex;
 	desc.fragmentFunction = fragment;
-	desc.colorAttachments[0].pixelFormat = video.metalLayer.pixelFormat;
-	video.pipeline = [video.device newRenderPipelineStateWithDescriptor: desc error: &error];
-	if (!video.pipeline) {
+	desc.colorAttachments[0].pixelFormat = metalLayer.pixelFormat;
+	id<MTLRenderPipelineState> pipeline = [device newRenderPipelineStateWithDescriptor: desc error: &error];
+	if (!pipeline) {
 		print_error((char*)[[error localizedDescription] UTF8String]);
 		exit(1);
 	}
+	[pipeline retain];
+	video.pipeline = pipeline;
 
 	MTLTextureDescriptor* texDesc = [[MTLTextureDescriptor alloc] init];
-	texDesc.pixelFormat = video.metalLayer.pixelFormat;
+	texDesc.pixelFormat = metalLayer.pixelFormat;
 	texDesc.width = video.screenSize.x;
 	texDesc.height = video.screenSize.y;
 	texDesc.usage = MTLTextureUsageShaderRead;
 	texDesc.textureType = MTLTextureType2D;
-	video.framebufferTexture = [video.device newTextureWithDescriptor: texDesc];
+	id<MTLTexture> texture = [device newTextureWithDescriptor: texDesc];
+	[texture retain];
+	video.framebufferTexture = texture;
 }
 
 void V_OutputFrameAndSync() {
-	static int index = 0;
-	FOR (i, video.framebufferSize.x*video.framebufferSize.y) {
-		// u8 c = randf() * 255.0f;
-		// video.framebuffer[i] = 255<<24 | c<<16 | 0<<8 | 0<<0;
-		float x = (float)(i%video.framebufferSize.x + index) * 0.1f;
-		float y = (float)((int)(i+(index*video.framebufferSize.x))/video.framebufferSize.x) * 0.1f;
-		u8 c = fbm(vec2(x, y)) * 255.0f;
-		x *= 4.0f;
-		y *= 4.0f;
-		u8 c2 = fbm(vec2(x, y)) * 255.0f;
-		x *= 4.0f;
-		y *= 4.0f;
-		u8 c3 = fbm(vec2(x, y)) * 255.0f;
-		c = c/3 + c2/3 + c3/3;
-		video.framebuffer[i] = 255<<24 | c<<16 | (c)<<8 | (0)<<0;
-	}
-	++index;
-	index %= (video.framebufferSize.x*video.framebufferSize.y);
+	id<MTLTexture> framebufferTexture = video.framebufferTexture;
+	CAMetalLayer* metalLayer = video.metalLayer;
+	id<MTLCommandQueue> commandQueue = video.commandQueue;
 
+	// Scale framebuffer up to window framebuffer size
 	FOR (iy, video.screenSize.y)
 	FOR (ix, video.screenSize.x) {
 		int x = ((float)ix / video.screenSize.x) * (float)video.framebufferSize.x;
@@ -185,21 +183,21 @@ void V_OutputFrameAndSync() {
 		.origin = {0, 0, 0,},
 		.size = {video.screenSize.x, video.screenSize.y, 1},
 	};
-	[video.framebufferTexture
+	[framebufferTexture
 		replaceRegion: region
 		mipmapLevel: 0
 		withBytes: video.scaledFramebuffer
 		bytesPerRow: sizeof(u32) * video.screenSize.x
 	];
 
-	id<CAMetalDrawable> drawable = [video.metalLayer nextDrawable];
+	id<CAMetalDrawable> drawable = [metalLayer nextDrawable];
 	// MTLRenderPassDescriptor* pass = [MTLRenderPassDescriptor renderPassDescriptor];
 	// pass.colorAttachments[0].texture = drawable.texture;
 	// pass.colorAttachments[0].loadAction = MTLLoadActionClear;
 	// pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0.5, 0, 1);
 	// pass.colorAttachments[0].storeAction = MTLStoreActionStore;
 
-	id<MTLCommandBuffer> commandBuffer = [video.commandQueue commandBuffer];
+	id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
 	// id<MTLRenderCommandEncoder> encoder = [commandBuffer renderCommandEncoderWithDescriptor: pass];
 	// [encoder setRenderPipelineState: video.pipeline];
 
@@ -232,27 +230,29 @@ void V_Init() {
 	video.framebuffer = malloc(sizeof(u32) * video.framebufferSize.x * video.framebufferSize.y);
 	video.scaledFramebuffer = malloc(sizeof(u32) * video.screenSize.x * video.screenSize.y);
 
-	video.app = [NSApplication sharedApplication];
-	[video.app setActivationPolicy: NSApplicationActivationPolicyRegular];
+	NSApplication* app = [NSApplication sharedApplication];
+	video.app = app;
+	[app setActivationPolicy: NSApplicationActivationPolicyRegular];
 	// AppDelegate* delegate = [[AppDelegate alloc] init];
 	// [video.app setDelegate: delegate];
 	// [video.app run];
 
 	NSRect frame = NSMakeRect(0, 0, video.screenSize.x, video.screenSize.y);
-	video.window = [
+	NSWindow* window = [
 		[NSWindow alloc] initWithContentRect: frame
 		styleMask: NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable
 		backing: NSBackingStoreBuffered
 		defer: NO
 	];
+	video.window = window;
 
 	MetalView* metalView = [[MetalView alloc] initWithFrame: frame];
 	// video.window.contentView = metalView;
-	[video.window setContentView: metalView];
-	[video.window setDelegate: metalView];
-	[video.window center];
-	[video.window makeKeyAndOrderFront: nil];
-	[video.app activateIgnoringOtherApps: YES];
+	[window setContentView: metalView];
+	[window setDelegate: metalView];
+	[window center];
+	[window makeKeyAndOrderFront: nil];
+	[app activateIgnoringOtherApps: YES];
 
 	time_t startTime = system_time();
 
@@ -264,13 +264,15 @@ void V_Init() {
 }
 
 void V_UpdateWindowAndInput() {
+	NSApplication* app = video.app;
+
 	NSEvent* event;
-	while ((event = [video.app nextEventMatchingMask: NSEventMaskAny untilDate: nil inMode: NSDefaultRunLoopMode dequeue: YES])) {
+	while ((event = [app nextEventMatchingMask: NSEventMaskAny untilDate: nil inMode: NSDefaultRunLoopMode dequeue: YES])) {
 		// print("event %i", event.type);
 		if (event.type == NSEventTypeApplicationDefined) {
 			exit(1);
 		}
-		[video.app sendEvent: event];
-		[video.app updateWindows];
+		[app sendEvent: event];
+		[app updateWindows];
 	}
 }

@@ -6,6 +6,7 @@
 #include <core/core.h>
 #include <core/core.c>
 #include "system.h"
+#include "render.h"
 
 system_t sys;
 
@@ -17,5 +18,7 @@ void S_Init() {
 void S_Update() {
 	V_UpdateWindowAndInput();
 	
+	R_DrawNoiseBackground();
+
 	V_OutputFrameAndSync();
 }

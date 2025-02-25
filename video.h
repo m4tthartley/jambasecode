@@ -5,24 +5,25 @@
 //  Copyright 2025 GiantJelly. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-#import <QuartzCore/CAMetalLayer.h>
-#import <Metal/Metal.h>
+// #import <Cocoa/Cocoa.h>
+// #import <QuartzCore/CAMetalLayer.h>
+// #import <Metal/Metal.h>
 #include <core/core.h>
 #include <core/math.h>
 
 typedef struct {
-	NSApplication* app;
-	NSWindow* window;
-	id<MTLDevice> device;
-	CAMetalLayer* metalLayer;
-	id<MTLCommandQueue> commandQueue;
-	id<MTLRenderPipelineState> pipeline;
+	/*NSApplication**/ void* app;
+	/*NSWindow**/ void* window;
+
+	/*id<MTLDevice>*/ void* device;
+	/*CAMetalLayer**/ void* metalLayer;
+	/*id<MTLCommandQueue>*/ void* commandQueue;
+	/*id<MTLRenderPipelineState>*/ void* pipeline;
 
 	int2_t screenSize;
 	int2_t framebufferSize;
 
-	id<MTLTexture> framebufferTexture;
+	/*id<MTLTexture>*/ void* framebufferTexture;
 	u32* framebuffer;
 	u32* scaledFramebuffer;
 } video_t;
