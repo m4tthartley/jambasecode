@@ -13,7 +13,7 @@
 #define CORE_IMPL
 #include <core/hotreload.h>
 
-extern system_t sys;
+extern sys_t sys;
 extern video_t video;
 
 // int main() {

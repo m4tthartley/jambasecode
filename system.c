@@ -8,7 +8,7 @@
 #include "system.h"
 #include "render.h"
 
-system_t sys;
+sys_t sys;
 
 void S_Init() {
 	sys.running = TRUE;
@@ -19,6 +19,8 @@ void S_Update() {
 	V_UpdateWindowAndInput();
 	
 	R_DrawNoiseBackground();
+	R_DrawQuad(vec2(0, 0), vec2(5.0f, 5.0f), 0xFFFF00FF);
+	R_DrawQuadOutline(vec2(-5, -2), vec2(3.0f, 5.0f), 0xFF0000FF);
 
 	V_OutputFrameAndSync();
 }

@@ -12,18 +12,18 @@
 #include <core/math.h>
 
 typedef struct {
-	/*NSApplication**/ void* app;
-	/*NSWindow**/ void* window;
+	// /*NSApplication**/ void* app;
+	// /*NSWindow**/ void* window;
 
-	/*id<MTLDevice>*/ void* device;
-	/*CAMetalLayer**/ void* metalLayer;
-	/*id<MTLCommandQueue>*/ void* commandQueue;
-	/*id<MTLRenderPipelineState>*/ void* pipeline;
+	// /*id<MTLDevice>*/ void* device;
+	// /*CAMetalLayer**/ void* metalLayer;
+	// /*id<MTLCommandQueue>*/ void* commandQueue;
+	// /*id<MTLRenderPipelineState>*/ void* pipeline;
 
 	int2_t screenSize;
 	int2_t framebufferSize;
 
-	/*id<MTLTexture>*/ void* framebufferTexture;
+	// /*id<MTLTexture>*/ void* framebufferTexture;
 	u32* framebuffer;
 	u32* scaledFramebuffer;
 } video_t;

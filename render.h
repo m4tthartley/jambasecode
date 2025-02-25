@@ -10,6 +10,7 @@
 #include <core/math.h>
 
 void R_DrawNoiseBackground();
-void R_DrawQuad(u32* fb, vec2_t pos, vec2_t size, vec3_t color);
+void R_DrawQuad(vec2_t pos, vec2_t size, u32 color);
+void R_DrawQuadOutline(vec2_t pos, vec2_t size, u32 color);
 
 #endif

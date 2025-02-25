@@ -10,7 +10,9 @@
 
 typedef struct {
 	b32 running;
-} system_t;
+
+	u8 objc_state[128];
+} sys_t;
 
 void S_Init();
 void S_Update();
