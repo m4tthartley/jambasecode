@@ -8,9 +8,14 @@
 
 #include <core/core.h>
 #include <core/math.h>
+#include "bitmap.h"
 
-void R_DrawNoiseBackground();
-void R_DrawQuad(vec2_t pos, vec2_t size, u32 color);
-void R_DrawQuadOutline(vec2_t pos, vec2_t size, u32 color);
+#define R_FUNC
+
+R_FUNC void R_DrawFbmBackground();
+R_FUNC void R_DrawNoiseBackground();
+R_FUNC void R_DrawQuad(vec2_t pos, vec2_t size, u32 color);
+R_FUNC void R_DrawQuadOutline(vec2_t pos, vec2_t size, u32 color);
+R_FUNC void R_BlitBitmap(bitmap_t* bitmap, vec2_t pos);
 
 #endif

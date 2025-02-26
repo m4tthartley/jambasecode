@@ -50,7 +50,7 @@ int main() {
 	// hotreload_run("game");
 	reload_register_state("sys", &sys, sizeof(sys));
 	reload_register_state("video", &video, sizeof(video));
-	reload_init("game");
+	reload_init("build/game");
 	while (sys.running) {
 		// if (hotreload.active && hotreload.reload()) {
 		// 	return 0;
