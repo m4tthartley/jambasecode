@@ -14,8 +14,8 @@
 #include <core/math.h>
 #include <core/math.c>
 
-#include "video.h"
 #include "system.h"
+#include "game.h"
 
 
 typedef struct {
@@ -31,7 +31,6 @@ typedef struct {
 } sys_objc_state_t;
 
 
-void V_InitMetal();
 video_t video;
 
 extern sys_t sys;
@@ -39,13 +38,14 @@ extern sys_t sys;
 @interface MetalView : NSView <NSWindowDelegate>
 @end
 @implementation MetalView
+
 - (instancetype) initWithFrame: (NSRect) frame {
 	self = [super initWithFrame: frame];
 	if (self) {
-		sys_objc_state_t* state = (sys_objc_state_t*)sys.objc_state;
-		V_InitMetal();
+		// sys_objc_state_t* state = (sys_objc_state_t*)sys.objc_state;
+		// Sys_InitMetal();
 		self.wantsLayer = YES;
-		self.layer = state->metalLayer;
+		// self.layer = state->metalLayer;
 	}
 
 	// [NSTimer scheduledTimerWithTimeInterval: 1.0/60.0
@@ -56,45 +56,27 @@ extern sys_t sys;
 	// ];
 	return self;
 }
-// - (void) draw {
-// 	V_OutputFrame();
-// }
-// - (void) displayLayer: (CALayer*) layer {
-// 	V_OutputFrame();
-// }
-// - (BOOL) wantsUpdateLayer {
-// 	return YES;
-// }
-// - (CALayer*) makeBackingLayer {
-// 	return video.metalLayer;
-// }
+
+@end
+
+@interface AppDelegate : NSObject <NSWindowDelegate>
+@end
+@implementation AppDelegate
+
 - (BOOL) acceptsFirstResponder {
 	return YES;
 }
 
 - (void) windowWillClose: (NSNotification*) notification {
+	print("Window close requested");
 	exit(1);
 }
+
+- (void) applicationDidFinishLaunching:(NSNotification*)notification {
+	print("applicationDidFinishLaunching");
+}
+
 @end
-
-// @interface AppDelegate : NSObject <NSApplicationDelegate>
-// @property (strong, nonatomic) NSWindow* window;
-// @end
-// @implementation AppDelegate
-// - (void) applicationDidFinishLaunching:(NSNotification*)notification {
-// 	NSRect frame = NSMakeRect(100, 100, 800, 600);
-// 	video.window = [
-// 		[NSWindow alloc] initWithContentRect: frame
-// 		styleMask: NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable
-// 		backing: NSBackingStoreBuffered
-// 		defer: NO
-// 	];
-
-// 	MetalView* metalView = [[MetalView alloc] initWithFrame: frame];
-// 	video.window.contentView = metalView;
-// 	[video.window makeKeyAndOrderFront: nil];
-// }
-// @end
 
 NSString* shaderSource =
 @"#include <metal_stdlib>\n"
@@ -128,8 +110,22 @@ NSString* shaderSource =
 "}\n"
 ;
 
-void V_InitMetal() {
+SYS_FUNC void Sys_InitMetalView() {
 	sys_objc_state_t* state = (sys_objc_state_t*)sys.objc_state;
+
+	video.framebufferSize = int2(320, 200);
+	video.framebuffer = malloc(sizeof(u32) * video.framebufferSize.x * video.framebufferSize.y);
+	video.scaledFramebuffer = malloc(sizeof(u32) * video.screenSize.x * video.screenSize.y);
+
+	NSRect frame = NSMakeRect(0, 0, video.screenSize.x, video.screenSize.y);
+	MetalView* metalView = [[[MetalView alloc] initWithFrame: frame] retain];
+	[state->window setContentView: metalView];
+}
+
+SYS_FUNC void Sys_InitMetal() {
+	sys_objc_state_t* state = (sys_objc_state_t*)sys.objc_state;
+
+	Sys_InitMetalView();
 
 	id<MTLDevice> device = [MTLCreateSystemDefaultDevice() retain];
 	// [device retain];
@@ -191,9 +187,11 @@ void V_InitMetal() {
 	state->framebufferTexture = [[device newTextureWithDescriptor: texDesc] retain];
 	[texDesc release];
 	// state->framebufferTexture = texture;
+
+	state->window.contentView.layer = state->metalLayer;
 }
 
-void V_OutputFrameAndSync() {
+SYS_FUNC void Sys_OutputFrameAndSync() {
 	sys_objc_state_t* state = (sys_objc_state_t*)sys.objc_state;
 
 	// id<MTLTexture> framebufferTexture = video.framebufferTexture;
@@ -258,15 +256,10 @@ void V_OutputFrameAndSync() {
 	[commandBuffer commit];
 }
 
-void V_Init() {
+SYS_FUNC void Sys_InitWindow() {
 	int sys_objc_state_size = sizeof(sys_objc_state_t);
 	assert(sizeof(sys.objc_state) >= sys_objc_state_size);
 	sys_objc_state_t* state = (sys_objc_state_t*)sys.objc_state;
-
-	video.screenSize = int2(1280, 720);
-	video.framebufferSize = int2(320, 200);
-	video.framebuffer = malloc(sizeof(u32) * video.framebufferSize.x * video.framebufferSize.y);
-	video.scaledFramebuffer = malloc(sizeof(u32) * video.screenSize.x * video.screenSize.y);
 
 	state->app = [NSApplication sharedApplication];
 	// video.app = app;
@@ -275,6 +268,7 @@ void V_Init() {
 	// [video.app setDelegate: delegate];
 	// [video.app run];
 
+	video.screenSize = int2(1280, 720);
 	NSRect frame = NSMakeRect(0, 0, video.screenSize.x, video.screenSize.y);
 	state->window = [[
 		[NSWindow alloc] initWithContentRect: frame
@@ -284,10 +278,9 @@ void V_Init() {
 	] retain];
 	// video.window = window;
 
-	MetalView* metalView = [[[MetalView alloc] initWithFrame: frame] retain];
-	// video.window.contentView = metalView;
-	[state->window setContentView: metalView];
-	[state->window setDelegate: metalView];
+	AppDelegate* delegate = [[[AppDelegate alloc] init] retain];
+	[state->window setDelegate: delegate];
+	// NSRect frame = NSMakeRect(0, 0, video.screenSize.x, video.screenSize.y);
 	[state->window center];
 	[state->window makeKeyAndOrderFront: nil];
 	[state->app activateIgnoringOtherApps: YES];
@@ -301,7 +294,11 @@ void V_Init() {
 	// }
 }
 
-void V_UpdateWindowAndInput() {
+// SYS_FUNC void Sys_InitMetal() {
+	
+// }
+
+SYS_FUNC void Sys_PollEvents() {
 	sys_objc_state_t* state = (sys_objc_state_t*)sys.objc_state;
 	// NSApplication* app = video.app;
 

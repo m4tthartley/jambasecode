@@ -1,7 +1,7 @@
 
 set -e
 
-files="video_apple.m system.c render.c"
+files="system_apple.m game.c render.c"
 libs="-framework Cocoa -framework QuartzCore -framework Metal"
 options="-fno-objc-arc"
 

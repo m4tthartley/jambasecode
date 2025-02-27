@@ -5,7 +5,7 @@
 
 #include <core/core.h>
 #include <core/math.h>
-#include "video.h"
+#include "system.h"
 #include "bitmap.h"
 #include "render.h"
 
@@ -51,11 +51,12 @@ R_FUNC void R_DrawFbmBackground() {
 R_FUNC void R_DrawNoiseBackground() {
 	u32* fb = video.framebuffer;
 	int2_t framebufferSize = video.framebufferSize;
-	static int index = 0;
-	FOR (i, framebufferSize.x*framebufferSize.y) {
-		float x = (float)(i%framebufferSize.x + index) * 0.01f;
-		float y = (float)((int)(i+(index*framebufferSize.x))/framebufferSize.x) * 0.01f;
-		u8 c = rand2d(vec2(x, y)) * 255.0f;
+	static float index = 0.0f;
+	FOR (y, framebufferSize.y)
+	FOR (x, framebufferSize.x) {
+		float xf = (int)((float)x * 1 + index);
+		float yf = (int)((float)y * 1 + index);
+		u8 c = rand2d(vec2(xf, yf)) * 255.0f;
 		// x *= 4.0f;
 		// y *= 4.0f;
 		// u8 c2 = fbm(vec2(x, y)) * 255.0f;
@@ -63,10 +64,10 @@ R_FUNC void R_DrawNoiseBackground() {
 		// y *= 4.0f;
 		// u8 c3 = fbm(vec2(x, y)) * 255.0f;
 		// c = c/3 + c2/3 + c3/3;
-		fb[i] = 255<<24 | 0<<16 | (c)<<8 | (0)<<0;
+		fb[y*framebufferSize.x+x] = 255<<24 | 0<<16 | (c)<<8 | (0)<<0;
 	}
-	++index;
-	index %= (framebufferSize.x*framebufferSize.y);
+	index += 1;
+	// index %= (framebufferSize.x*framebufferSize.y);
 }
 
 R_FUNC void R_DrawQuad(vec2_t pos, vec2_t size, u32 color) {

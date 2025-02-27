@@ -1,28 +1,37 @@
 //
-//  Created by Matt Hartley on 23/02/2025.
+//  Video Header
+//
+//  Created by Matt Hartley on 22/02/2025.
 //  Copyright 2025 GiantJelly. All rights reserved.
 //
 
-#ifndef __SYSTEM_H__
-#define __SYSTEM_H__
-
+// #import <Cocoa/Cocoa.h>
+// #import <QuartzCore/CAMetalLayer.h>
+// #import <Metal/Metal.h>
 #include <core/core.h>
-#include "bitmap.h"
+#include <core/math.h>
 
 typedef struct {
-	b32 running;
-	allocator_t assertMemory;
+	// /*NSApplication**/ void* app;
+	// /*NSWindow**/ void* window;
 
-	bitmap_t* testBitmap;
+	// /*id<MTLDevice>*/ void* device;
+	// /*CAMetalLayer**/ void* metalLayer;
+	// /*id<MTLCommandQueue>*/ void* commandQueue;
+	// /*id<MTLRenderPipelineState>*/ void* pipeline;
 
-	u8 objc_state[128];
-} sys_t;
+	int2_t screenSize;
+	int2_t framebufferSize;
 
-void S_Init();
-void S_Update();
+	// /*id<MTLTexture>*/ void* framebufferTexture;
+	u32* framebuffer;
+	u32* scaledFramebuffer;
+} video_t;
 
-void V_OutputFrameAndSync();
-void V_Init();
-void V_UpdateWindowAndInput();
+#define SYS_FUNC
 
-#endif
+SYS_FUNC void Sys_InitMetal();
+SYS_FUNC void Sys_OutputFrameAndSync();
+SYS_FUNC void Sys_InitWindow();
+// SYS_FUNC void Sys_InitMetal();
+SYS_FUNC void Sys_PollEvents();

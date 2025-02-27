@@ -7,8 +7,8 @@
 
 #include <core/core.h>
 
+#include "game.h"
 #include "system.h"
-#include "video.h"
 
 #define CORE_IMPL
 #include <core/hotreload.h>
@@ -46,7 +46,7 @@ extern video_t video;
 // #ifdef HOTRELOAD
 // hotreload_t hotreload;
 int main() {
-	S_Init();
+	G_Init();
 	// hotreload_run("game");
 	reload_register_state("sys", &sys, sizeof(sys));
 	reload_register_state("video", &video, sizeof(video));
@@ -57,7 +57,7 @@ int main() {
 		// }
 		reload_update();
 		// S_Update();
-		reload_run_func("S_Update", NULL);
+		reload_run_func("G_Update", NULL);
 	}
 }
 // #else
