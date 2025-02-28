@@ -10,13 +10,15 @@
 #include "render.h"
 
 extern video_t video;
-vec2_t worldSpaceMin = {-10.0f, -10.0f};
-vec2_t worldSpaceMax = {10.0f, 10.0f};
 
 int2_t R_ConvertPointToScreenSpace(vec2_t pos) {
+	// int2_t screen = {
+	// 	(pos.x-video.worldSpaceMin.x) / (video.worldSpaceMax.x-video.worldSpaceMin.x) * (float)video.framebufferSize.x,
+	// 	(pos.y-video.worldSpaceMin.y) / (video.worldSpaceMax.y-video.worldSpaceMin.y) * (float)video.framebufferSize.y,
+	// };
 	int2_t screen = {
-		(pos.x-worldSpaceMin.x) / (worldSpaceMax.x-worldSpaceMin.x) * (float)video.framebufferSize.x,
-		(pos.y-worldSpaceMin.y) / (worldSpaceMax.y-worldSpaceMin.y) * (float)video.framebufferSize.y,
+		roundf((pos.x/(video.worldSpace.x) + 0.5f) * (float)video.framebufferSize.x),
+		roundf((pos.y/(video.worldSpace.y) + 0.5f) * (float)video.framebufferSize.y),
 	};
 	return screen;
 }
@@ -133,12 +135,12 @@ R_FUNC void R_DrawQuadOutline(vec2_t pos, vec2_t size, u32 color) {
 	u32* fb = video.framebuffer;
 
 	int2_t screenPos = {
-		(pos.x-worldSpaceMin.x) / (worldSpaceMax.x-worldSpaceMin.x) * (float)video.framebufferSize.x,
-		(pos.y-worldSpaceMin.y) / (worldSpaceMax.y-worldSpaceMin.y) * (float)video.framebufferSize.y,
+		(pos.x-video.worldSpaceMin.x) / (video.worldSpaceMax.x-video.worldSpaceMin.x) * (float)video.framebufferSize.x,
+		(pos.y-video.worldSpaceMin.y) / (video.worldSpaceMax.y-video.worldSpaceMin.y) * (float)video.framebufferSize.y,
 	};
 	int2_t screenSize = {
-		(size.x) / (worldSpaceMax.x-worldSpaceMin.x) * (float)video.framebufferSize.x,
-		(size.y) / (worldSpaceMax.y-worldSpaceMin.y) * (float)video.framebufferSize.y,
+		(size.x) / (video.worldSpaceMax.x-video.worldSpaceMin.x) * (float)video.framebufferSize.x,
+		(size.y) / (video.worldSpaceMax.y-video.worldSpaceMin.y) * (float)video.framebufferSize.y,
 	};
 
 	// clip
@@ -191,6 +193,19 @@ R_FUNC void R_BlitBitmap(bitmap_t* bitmap, vec2_t pos) {
 	FOR (x, bitmap->width) {
 		int fbIndex = (screenPos.y+y)*video.framebufferSize.x + (screenPos.x+x);
 		u32 texel = bitmap->data[y*bitmap->width+x];
+		if (texel) {
+			fb[fbIndex] = texel;
+		}
+	}
+}
+
+R_FUNC void R_BlitBitmapAtlas(bitmap_t* bitmap, int atlasX, int atlasY, int width, int height, vec2_t pos) {
+	int2_t screenPos = R_ConvertPointToScreenSpace(pos);
+	u32* fb = video.framebuffer;
+	FOR (y, height)
+	FOR (x, width) {
+		int fbIndex = (screenPos.y+y)*video.framebufferSize.x + (screenPos.x+x);
+		u32 texel = bitmap->data[(atlasY+y)*bitmap->width+(atlasX+x)];
 		if (texel) {
 			fb[fbIndex] = texel;
 		}

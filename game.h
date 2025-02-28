@@ -12,9 +12,11 @@
 
 typedef struct {
 	b32 running;
-	allocator_t assertMemory;
+	allocator_t assetMemory;
+	allocator_t scratchBuffer;
 
 	bitmap_t* testBitmap;
+	bitmap_t* fontBitmap;
 	sys_wave_t* pianoTest;
 
 	u8 objc_state[128];

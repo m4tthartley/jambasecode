@@ -208,7 +208,7 @@ SYS_FUNC void Sys_OutputFrameAndSync() {
 	for (int ix=xoffset; ix<xoffset+relativeWidth; ++ix) {
 		int x = ((float)(ix-xoffset) / relativeWidth) * (float)video.framebufferSize.x;
 		int y = ((float)(iy) / video.screenSize.y) * (float)video.framebufferSize.y;
-		video.scaledFramebuffer[iy*video.screenSize.x+ix] = video.framebuffer[y*video.framebufferSize.x+x];
+		video.scaledFramebuffer[iy*video.screenSize.x+ix] = video.framebuffer[(video.framebufferSize.y-y-1)*video.framebufferSize.x+x];
 	}
 
 	MTLRegion region = {
@@ -268,7 +268,10 @@ SYS_FUNC void Sys_InitWindow() {
 	// [video.app setDelegate: delegate];
 	// [video.app run];
 
-	video.screenSize = int2(1280, 720);
+	// 320x200
+	// 640x400
+	// 1280x800
+	video.screenSize = int2(1280, 800);
 	NSRect frame = NSMakeRect(0, 0, video.screenSize.x, video.screenSize.y);
 	state->window = [[
 		[NSWindow alloc] initWithContentRect: frame

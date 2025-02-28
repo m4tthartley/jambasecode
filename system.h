@@ -29,6 +29,10 @@ typedef struct {
 	// /*id<MTLTexture>*/ void* framebufferTexture;
 	u32* framebuffer;
 	u32* scaledFramebuffer;
+
+	vec2_t worldSpaceMin;
+	vec2_t worldSpaceMax;
+	vec2_t worldSpace;
 } video_t;
 
 typedef struct {

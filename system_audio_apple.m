@@ -37,14 +37,13 @@ OSStatus Sys_AURenderCallback(
 ) {
 	zero_memory(data->mBuffers[0].mData, sizeof(float)*2*numFrames);
 
-	static int cursor = 0;
-	FOR (i, numFrames) {
-		float wave = sinf(440.0f * PI2 * cursor / 44100.0f) * 0.1f;
-		((float*)data->mBuffers[0].mData)[i*2] += wave;
-		((float*)data->mBuffers[0].mData)[i*2+1] += wave;
-		// ((float*)data->mBuffers[1].mData)[i] = wave;
-		++cursor;
-	}
+	// static int cursor = 0;
+	// FOR (i, numFrames) {
+	// 	float wave = sinf(440.0f * PI2 * cursor / 44100.0f) * 0.1f;
+	// 	((float*)data->mBuffers[0].mData)[i*2] += wave;
+	// 	((float*)data->mBuffers[0].mData)[i*2+1] += wave;
+	// 	++cursor;
+	// }
 
 	FOR (isound, array_size(_sounds)) {
 		sys_sound_t* sound = _sounds + isound;

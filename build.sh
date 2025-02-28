@@ -5,7 +5,7 @@
 
 set -e
 
-files="system_apple.m game.c render.c system_audio_apple.m"
+files="system_apple.m game.c render.c system_audio_apple.m bitmap.c"
 libs="-framework Cocoa -framework QuartzCore -framework Metal -framework AudioToolbox"
 options="-fno-objc-arc"
 
