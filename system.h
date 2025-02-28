@@ -28,6 +28,8 @@ typedef struct {
 	u32* scaledFramebuffer;
 } video_t;
 
+typedef void (*audio_mixer_proc)(void* outputStream, int sampleCount, void* userdata);
+
 #define SYS_FUNC
 
 SYS_FUNC void Sys_InitMetal();
@@ -35,3 +37,5 @@ SYS_FUNC void Sys_OutputFrameAndSync();
 SYS_FUNC void Sys_InitWindow();
 // SYS_FUNC void Sys_InitMetal();
 SYS_FUNC void Sys_PollEvents();
+
+SYS_FUNC void Sys_InitAudio(audio_mixer_proc mixerProc);

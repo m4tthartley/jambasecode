@@ -17,6 +17,8 @@ void G_Init() {
 	Sys_InitWindow();
 	Sys_InitMetal();
 
+	Sys_InitAudio(NULL);
+
 	// Sys_Init()
 
 	// window_t window = Sys_InitWindow()

@@ -1,8 +1,12 @@
+#
+#  Created by Matt Hartley on 22/02/2025.
+#  Copyright 2025 GiantJelly. All rights reserved.
+#
 
 set -e
 
-files="system_apple.m game.c render.c"
-libs="-framework Cocoa -framework QuartzCore -framework Metal"
+files="system_apple.m game.c render.c system_audio_apple.m"
+libs="-framework Cocoa -framework QuartzCore -framework Metal -framework AudioToolbox"
 options="-fno-objc-arc"
 
 mkdir -p ./build
