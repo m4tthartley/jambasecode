@@ -6,11 +6,26 @@
 #include <core/core.h>
 #include <core/core.c>
 #include "game.h"
-#include "system.h"
+// #include "system.h"
 #include "render.h"
 #include "bitmap.c"
 
 sys_t sys;
+
+file_data_t* ReadEntireFile(allocator_t* allocator, char* filename) {
+	file_data_t* result = NULL;
+
+	file_t file = file_open(filename);
+	if (file) {
+		stat_t info = file_stat(file);
+		result = alloc_memory(allocator, sizeof(file_data_t)+info.size);
+		copy_memory(result, &info, sizeof(info));
+		file_read(file, 0, result+1, info.size);
+		file_close(file);
+	}
+
+	return result;
+}
 
 void G_Init() {
 	sys.running = TRUE;
@@ -27,8 +42,11 @@ void G_Init() {
 
 	// WindowInit()
 
-	sys.assertMemory = virtual_heap_allocator(MB(1), MB(1));
+	sys.assertMemory = virtual_heap_allocator(MB(10), NULL);
 	sys.testBitmap = LoadBitmap(&sys.assertMemory, "assets/test.bmp");
+
+	sys.pianoTest = Sys_LoadWave(&sys.assertMemory, ReadEntireFile(&sys.assertMemory, "/Users/matt/Desktop/piano.wav"));
+	Sys_QueueSound(sys.pianoTest, 0.5f);
 }
 
 vec2_t boxPos = {4, 0};

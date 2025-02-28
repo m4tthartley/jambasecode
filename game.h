@@ -3,10 +3,11 @@
 //  Copyright 2025 GiantJelly. All rights reserved.
 //
 
-#ifndef __SYSTEM_H__
-#define __SYSTEM_H__
+#ifndef __GAME_H__
+#define __GAME_H__
 
 #include <core/core.h>
+#include "system.h"
 #include "bitmap.h"
 
 typedef struct {
@@ -14,6 +15,7 @@ typedef struct {
 	allocator_t assertMemory;
 
 	bitmap_t* testBitmap;
+	sys_wave_t* pianoTest;
 
 	u8 objc_state[128];
 } sys_t;
